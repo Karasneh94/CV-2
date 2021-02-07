@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="style/style.css">
+
+    <style type="text/css" media="print">
+        .noprint {
+            display: none
+        }
+        
+        .print {
+            display: block !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <header class="el-header noprint">
+            <div class="icon-btns">
+                <i class="icon-list" @click="changeLeftMenu"></i>
+                <i class="icon-skip_previous" v-bind:class="{'disabled': currentPage == 1}" @click="changeCurrentPage('first')"></i>
+                <i class="icon-play_arrow prev-icon" v-bind:class="{'disabled': currentPage == 1}" @click="changeCurrentPage('prev')"></i>
+                <i class="icon-play_arrow" v-bind:class="{'disabled': currentPage == pageNum}" @click="changeCurrentPage('next')"></i>
+                <i class="icon-skip_next" v-bind:class="{'disabled': currentPage == pageNum}" @click="changeCurrentPage('last')"></i>
+                <select v-model="currentPage">
+                    <option v-for="page in pageNum" v-bind:value="page">page {{ page }}</option>
+                </select>
+                <i class="icon-zoom_in" v-bind:class="{'disabled': zoomNum == 2}" @click="modifyZoom('in')"></i>
+                <select v-model="zoomNum">
+                    <option value="0.5">50%</option>
+                    <option value="0.6">60%</option>
+                    <option value="0.7">70%</option>
+                    <option value="0.8">80%</option>
+                    <option value="0.9">90%</option>
+                    <option value="1.0" selected>100%</option>
+                    <option value="1.1">110%</option>
+                    <option value="1.2">120%</option>
+                    <option value="1.3">130%</option>
+                    <option value="1.4">140%</option>
+                    <option value="1.5">150%</option>
+                    <option value="1.6">160%</option>
+                    <option value="1.7">170%</option>
+                    <option value="1.8">180%</option>
+                    <option value="1.9">190%</option>
+                    <option value="2.0">200%</option>
+                </select>
+                <i class="icon-zoom_out" v-bind:class="{'disabled': zoomNum == 0.5}" @click="modifyZoom('out')"></i>
+                <i class="icon-format_align_left" @click="textAlign = 'left'"></i>
+                <i class="icon-format_align_center" @click="textAlign = 'center'"></i>
+                <i class="icon-format_align_right" @click="textAlign = 'right'"></i>
+                <i class="icon-print" @click="window.print()"></i>
+            </div>
+        </header>
+
+        <aside class="noprint" width="240px" v-show="ifMenuShow">
+            <nav class="tabNav">
+                <ul>
+                    <li v-bind:class="{ 'curr': currentNav == 0 }" @click="currentNav = 0">Page</li>
+                    <li v-bind:class="{ 'curr': currentNav == 1 }" @click="currentNav = 1">Bookmark</li>
+                </ul>
+
+                <div class="clear"></div>
+            </nav>
+
+            <div class="tab-conent scrollbar" v-bind:style="{ height: asideHeight + 'px' }">
+
+            <section v-show="currentNav == 0">
+                <ul class="page-menu">
+                    <li v-for="page in pageNum" v-bind:class="{ 'curr': currentPage == page }" @click="changePage(page)"><i class="icon-file-text2"></i> page {{ page }}</li>
+                </ul>
+            </section>
+
+            <section v-show="currentNav == 1">
+                <ul class="page-menu">
+                    <li v-for="page in pageNum" v-bind:class="{ 'curr': currentPage == page }" @click="changePage(page)"><i class="icon-turned_in_not"></i> Bookmark {{ page }}</li>
+                </ul>
+            </section>
+        </div>
+
+        </aside>
+        <div class="main scrollbar noprint"  v-bind:style="{ height: mainHeight + 'px' }" v-bind:class="{ 'mainLeftM': ifMenuShow, 'aleft': textAlign === 'left','acenter': textAlign === 'center','aright': textAlign === 'right'}">
+            <div class="conent" v-html="pageContent" v-bind:style="zoomStyle"></div>
+
+            <div class="clear"></div>
+        </div>
+
+        <!--专门只为打印的内容-->
+        <div class="conent print" style="display:none" v-html="pageContent"></div>
+    </div>
+</body>
+<!-- 先引入 Vue -->
+<script src="js/vue.min.js"></script>
+<script>
+
+var app = new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                // visible: false,
+                isCollapse: false,
+                currentNav: 0,
+                activeName2: 'first',
+                pageNum: 1, 
+                currentPage: 1,
+                pageContent: '',
+                asideHeight: 300,
+                mainHeight: 300,
+                ifMenuShow: true,
+                zoomNum: '1.0',
+                textAlign: 'left',
+                zoomStyle: {},
+                pageDatas: ['<div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="1056.000000" width="816.000000" src ="bgimg/bg00001.jpg"/></nobr></div><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:24.799967px;left:674.693298px"><nobr>Amman, Jordan </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:45.279949px;left:668.293335px"><nobr>+962 797865995 </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;text-decoration:underline;color:#F59E00;"><span style="position:absolute;top:65.919922px;left:623.813293px"><nobr><a href="mailto:Karasneh94@gmail.com">Karasneh94@gmail.com </a></nobr></span></span></p><p><span style="font-family:Calibri;font-size:12.000000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:86.719971px;left:680.453369px"><nobr>8th-Feb-1994 </nobr></span></span></p><p><span style="font-family:Calibri;font-size:15.960000px;font-style:normal;font-weight:normal;color:#FFFFFF;"><span style="position:absolute;top:129.506668px;left:179.066681px"><nobr>AHMED KARASNEH </nobr></span></span></p><p><span style="font-family:Calibri;font-size:10.560000px;font-style:normal;font-weight:normal;color:#306785;"><span style="position:absolute;top:198.266678px;left:114.431992px"><nobr>OBJECTIVE </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:198.226730px;left:208.826691px"><nobr>An organized and highly focused individual holds a bachelor ’s degree in software engineering and has </nobr></span><span style="position:absolute;top:217.586746px;left:208.826691px"><nobr>gained experience in Software Development through my university studies, supported by multiple </nobr></span><span style="position:absolute;top:237.266678px;left:208.826691px"><nobr>online courses. Seeking an opportunity to gain experience and enhance my skills to support the growth </nobr></span><span style="position:absolute;top:256.786713px;left:208.826691px"><nobr>and developmental objectives of your company. </nobr></span></span></p><p><span style="font-family:Calibri;font-size:10.560000px;font-style:normal;font-weight:normal;color:#306785;"><span style="position:absolute;top:309.626709px;left:111.231995px"><nobr>TECHNICAL </nobr></span></span></p><p><span style="font-family:Calibri;font-size:10.560000px;font-style:normal;font-weight:normal;color:#306785;"><span style="position:absolute;top:329.986664px;left:139.546661px"><nobr>SKILLS </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-weight:bold;color:#404040;"><span style="position:absolute;top:309.426666px;left:208.826691px"><nobr>PROGRAMMING </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:331.706696px;left:208.826691px"><nobr>Java, C++, Flutter, Dart, Android, JavaScript </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-weight:bold;color:#404040;"><span style="position:absolute;top:353.946686px;left:208.826691px"><nobr>ARDUINO PLATFORM (SOFTWARE AND HARDWARE) </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:376.026642px;left:208.826691px"><nobr>Used Flutter and Dart to program a home automation system connected to an </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:395.546661px;left:208.826691px"><nobr>Arduino platform, using Firebase database to control electrical equipment </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-weight:bold;color:#404040;"><span style="position:absolute;top:417.786682px;left:208.826691px"><nobr>TROUBLESHOOTING </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:440.026642px;left:208.826691px"><nobr>Hardware and network troubleshooting </nobr></span></span></p><p><span style="font-family:Calibri;font-size:10.560000px;font-style:normal;font-weight:normal;color:#306785;"><span style="position:absolute;top:484.866638px;left:114.751991px"><nobr>PERSONAL </nobr></span></span></p><p><span style="font-family:Calibri;font-size:10.560000px;font-style:normal;font-weight:normal;color:#306785;"><span style="position:absolute;top:505.346619px;left:85.631989px"><nobr>COMPETENCIES </nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:482.080292px;left:232.826691px"><nobr>• </nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:504.960236px;left:232.826691px"><nobr>• </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:485.466675px;left:256.866669px"><nobr>Great aptitude for continuous learning and development </nobr></span><span style="position:absolute;top:508.346619px;left:256.866669px"><nobr>Adaptive mindset with workers and work environment </nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:527.840271px;left:232.826691px"><nobr>• <span style="font-family:Calibri;">Ability to work in a fast-paced environment to set deadlines </span></nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:550.746948px;left:232.826691px"><nobr>• <span style="font-family:Calibri;">Highly organized with a creative flair to work for a project </span></nobr></span></span></p><p><span style="font-family:Calibri;font-size:10.560000px;font-style:normal;font-weight:normal;color:#306785;"><span style="position:absolute;top:598.973389px;left:50.080002px"><nobr>WORK AND TRAINING </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-weight:bold;color:#404040;"><span style="position:absolute;top:598.773315px;left:208.826691px"><nobr>QUALITY ENGINEER, ASPIRE </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:621.173340px;left:208.826691px"><nobr>[Oct 2019, Nov 2019] </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:643.413330px;left:208.826691px"><nobr>-User Interface testing </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-weight:bold;color:#404040;"><span style="position:absolute;top:665.493347px;left:208.826691px"><nobr>IOT DEVELOPER INTERN, FABLAB IRBID </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:687.733276px;left:208.826691px"><nobr>[Sept 2019, Nov 2019] </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:709.973328px;left:208.826691px"><nobr>-Gained the ability to utilize the Arduino platform </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:732.053406px;left:208.826691px"><nobr>-Incorporated the Internet of Things (IoT) concepts to be able to control devices </nobr></span><span style="position:absolute;top:751.733276px;left:208.826691px"><nobr>remotely through a network </nobr></span></span></p><p><span style="font-family:Calibri;font-size:10.560000px;font-style:normal;font-weight:normal;color:#306785;"><span style="position:absolute;top:796.453369px;left:107.551987px"><nobr>EDUCATION </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-weight:bold;color:#404040;"><span style="position:absolute;top:796.253357px;left:208.826691px"><nobr>ADVANCED SOFTWARE DEVELOPMENT IN FULL-STACK JAVASCRIPT </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:818.653320px;left:208.826691px"><nobr>ASAC LTUC – Powered by Code Fellows Academy [2021-Jan | Present] </nobr></span><span style="position:absolute;top:848.893311px;left:208.826691px"><nobr><span style="font-weight:bold;color:#404040;">BACHELOR ’S IN SOFTWARE ENGINEERING </span></nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:870.973328px;left:208.826691px"><nobr>Jordan University of Science and Technology [2013-2019] </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-weight:bold;color:#404040;"><span style="position:absolute;top:901.213379px;left:208.826691px"><nobr>CERTIFIED ETHICAL HACKER </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:923.447998px;left:208.826691px"><nobr>SDK Training Center, Irbid [2018] </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-weight:bold;color:#404040;"><span style="position:absolute;top:953.687927px;left:208.826691px"><nobr>GENERAL SECONDARY CERTIFICATE </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#595959;"><span style="position:absolute;top:975.768005px;left:208.826691px"><nobr>Irbid, Jordan [2013] </nobr></span></span></p>']
+            }
+        },
+        mounted: function() {
+            this.$nextTick(function() {
+                this.pageNum = this.pageDatas.length;
+                this.pageContent = this.pageDatas[0];
+
+                this.setLeftMenuHeight();
+            })
+        },
+        watch: {
+            'currentPage': function(newVal, oldValue) {
+                // console.log('newVal ' + newVal, 'oldValue ' + oldValue);
+                if (newVal) {
+                    this.pageContent = this.pageDatas[this.currentPage - 1];
+                }
+            },
+            'zoomNum': function(newVal, oldValue) {
+                if (newVal) {
+                    this.zoomStyle = {
+                        'transform': 'scale(' + newVal + ')',
+                        '-webkit-transform': 'scale(' + newVal + ')',
+                        '-ms-transform': 'scale(' + newVal + ')',
+                        '-moz-transform': 'scale(' + newVal + ')',
+                        '-o-transform': 'scale(' + newVal + ')'
+                    }
+                }
+            }
+        },
+        methods: {
+            
+            changeCurrentPage: function(methods) {
+                switch (methods) {
+                    case 'first':
+                        this.currentPage = 1;
+                        break;
+                    case 'prev':
+                        if (this.currentPage > 1) {
+                            this.currentPage -= 1;
+                        }
+                        break;
+                    case 'next':
+                        if (this.currentPage < this.pageNum) {
+                            this.currentPage += 1;
+                        }
+                        break;
+                    case 'last':
+                        this.currentPage = this.pageNum;
+                        break;
+                }
+            },
+
+            gotoPage: function(page) {
+                console.log(page);
+                this.currentPage = page;
+            },
+            modifyZoom: function(type) {
+                switch (type) {
+                    case 'in':
+                        if (this.zoomNum < 2) {
+                            // this.zoomNum = (this.zoomNum + 0.1).toFixed(1);
+                            this.zoomNum = (parseFloat(this.zoomNum) + 0.1).toFixed(1);
+                        }
+                        break;
+                    case 'out':
+                        if (this.zoomNum > 0.5) {
+                            this.zoomNum = (parseFloat(this.zoomNum) - 0.1).toFixed(1);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                console.log(this.zoomNum);
+            },
+            setLeftMenuHeight: function() {
+                // this.asideHeight = document.body.scrollHeight - 60;
+                this.mainHeight = document.documentElement.clientHeight - 60 - 20;
+                // 60为头部导航高度， 46为menu高度， 40为上下padding
+                this.asideHeight = this.mainHeight - 20 - 46;
+            },
+            changePage: function(page) {
+                this.currentPage = page;
+                // this.pageContent = this.pageDatas[page - 1];
+            },
+            changeLeftMenu: function() {
+                this.ifMenuShow = !this.ifMenuShow;
+            }
+        }
+    });
+
+function gotoPage(page) {
+    console.log(page);
+    app.gotoPage(page);
+}
+
+</script>
+
+</html>
